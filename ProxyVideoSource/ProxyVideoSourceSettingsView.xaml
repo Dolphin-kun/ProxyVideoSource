@@ -7,83 +7,115 @@
              xmlns:c="clr-namespace:YukkuriMovieMaker.Controls;assembly=YukkuriMovieMaker.Controls"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <StackPanel Focusable="True">
-        <!-- 基本設定 -->
-        <Expander Header="基本設定" IsExpanded="True">
-            <StackPanel>
-                <Grid>
-                    <Label Content="プロキシを使用する" ToolTip="編集中に軽量な低解像度の動画を使用する"/>
-                    <c:ToggleSlider Value="{Binding Source={x:Static local:ProxyVideoSourceSettings.Default}, Path=UseProxy}" HorizontalAlignment="Right"/>
-                </Grid>
-                <Grid>
-                    <Label Content="解像度スケール" ToolTip="プロキシ動画の解像度倍率"/>
-                    <c:TextBoxSlider Value="{Binding Source={x:Static local:ProxyVideoSourceSettings.Default}, Path=Scale}" 
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Focusable="True">
+            <!-- 基本設定 -->
+            <Expander Header="基本設定" IsExpanded="True">
+                <StackPanel>
+                    <Grid>
+                        <Label Content="プロキシを使用する" ToolTip="編集中に軽量な低解像度の動画を使用する"/>
+                        <c:ToggleSlider Value="{Binding Source={x:Static local:ProxyVideoSourceSettings.Default}, Path=UseProxy}" HorizontalAlignment="Right"/>
+                    </Grid>
+                    <Grid>
+                        <Label Content="解像度スケール" ToolTip="プロキシ動画の解像度倍率"/>
+                        <c:TextBoxSlider Value="{Binding Source={x:Static local:ProxyVideoSourceSettings.Default}, Path=Scale}" 
                                      Min="10" Max="100" DefaultMin="25" DefaultMax="75" Delta="5" 
                                      StringFormat="F0" Unit="%" Width="200" 
                                      HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                </Grid>
-                <Grid>
-                    <Label Content="最小ファイルサイズ" ToolTip="このサイズ以上の動画のみプロキシを生成する"/>
-                    <c:TextBoxSlider Value="{Binding Source={x:Static local:ProxyVideoSourceSettings.Default}, Path=MinFileSizeForProxy}" 
+                    </Grid>
+                    <Grid>
+                        <Label Content="最小ファイルサイズ" ToolTip="このサイズ以上の動画のみプロキシを生成する"/>
+                        <c:TextBoxSlider Value="{Binding Source={x:Static local:ProxyVideoSourceSettings.Default}, Path=MinFileSizeForProxy}" 
                                      Min="1" Max="1000" DefaultMin="10" DefaultMax="200" Delta="10" 
                                      StringFormat="F0" Unit="MB" Width="200" 
                                      HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                </Grid>
-                <Grid>
-                    <Label Content="詳細設定" ToolTip="詳細設定オプション"/>
-                    <c:ToggleSlider Value="{Binding Source={x:Static local:ProxyVideoSourceSettings.Default},Path=UseAdvancedSetting}" HorizontalAlignment="Right"/>
-                </Grid>
-            </StackPanel>
-        </Expander>
+                    </Grid>
+                    <Grid>
+                        <Label Content="詳細設定" ToolTip="詳細設定オプション"/>
+                        <c:ToggleSlider Value="{Binding Source={x:Static local:ProxyVideoSourceSettings.Default},Path=UseAdvancedSetting}" HorizontalAlignment="Right"/>
+                    </Grid>
+                </StackPanel>
+            </Expander>
 
-        <!-- 詳細設定 -->
-        <Expander Header="詳細設定" IsExpanded="True">
-            <Expander.Style>
-                <Style TargetType="Expander">
-                    <Setter Property="Visibility" Value="Collapsed"/>
-                    <Style.Triggers>
-                        <DataTrigger Binding="{Binding Source={x:Static local:ProxyVideoSourceSettings.Default}, Path=UseAdvancedSetting}" Value="True">
-                            <Setter Property="Visibility" Value="Visible"/>
-                        </DataTrigger>
-                    </Style.Triggers>
-                </Style>
-            </Expander.Style>
+            <!-- 詳細設定 -->
+            <Expander Header="詳細設定" IsExpanded="True">
+                <Expander.Style>
+                    <Style TargetType="Expander">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Source={x:Static local:ProxyVideoSourceSettings.Default}, Path=UseAdvancedSetting}" Value="True">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Expander.Style>
 
-            <StackPanel>
-                <Grid>
-                    <Label Content="使用CPUコア数" ToolTip="プロキシ生成時に使用するCPUコア数&#10;0にすると自動設定"/>
-                    <c:TextBoxSlider x:Name="CpuCoreSlider" Value="{Binding Source={x:Static local:ProxyVideoSourceSettings.Default}, Path=CpuCoreCount}" Min="0" DefaultMax="4" DefaultMin="0" Delta="1" StringFormat="F0" Unit="" Width="200" HorizontalAlignment="Right"/>
-                </Grid>
+                <StackPanel>
+                    <Grid>
+                        <Label Content="使用CPUコア数" ToolTip="プロキシ生成時に使用するCPUコア数&#10;0にすると自動設定"/>
+                        <c:TextBoxSlider x:Name="CpuCoreSlider" Value="{Binding Source={x:Static local:ProxyVideoSourceSettings.Default}, Path=CpuCoreCount}" Min="0" DefaultMax="4" DefaultMin="0" Delta="1" StringFormat="F0" Unit="" Width="200" HorizontalAlignment="Right"/>
+                    </Grid>
 
-            </StackPanel>
+                </StackPanel>
 
-        </Expander>
+            </Expander>
 
-        <!-- 自動化設定 -->
-        <Expander Header="自動化設定" IsExpanded="True">
-            <StackPanel>
-                <Grid>
-                    <Label Content="自動生成" ToolTip="プロキシが存在しない場合に自動で生成"/>
-                    <c:ToggleSlider Value="{Binding Source={x:Static local:ProxyVideoSourceSettings.Default}, Path=AutoGenerate}" HorizontalAlignment="Right"/>
-                </Grid>
-                <Grid>
-                    <Label Content="終了時にキャッシュクリア" ToolTip="アプリ終了時に生成済みのプロキシファイルを削除"/>
-                    <c:ToggleSlider Value="{Binding Source={x:Static local:ProxyVideoSourceSettings.Default}, Path=ClearCacheOnExit}" HorizontalAlignment="Right"/>
-                </Grid>
-            </StackPanel>
-        </Expander>
+            <!-- 自動化設定 -->
+            <Expander Header="自動化設定" IsExpanded="True">
+                <StackPanel>
+                    <Grid>
+                        <Label Content="自動生成" ToolTip="プロキシが存在しない場合に自動で生成"/>
+                        <c:ToggleSlider Value="{Binding Source={x:Static local:ProxyVideoSourceSettings.Default}, Path=AutoGenerate}" HorizontalAlignment="Right"/>
+                    </Grid>
+                    <Grid>
+                        <Label Content="終了時にキャッシュクリア" ToolTip="アプリ終了時に生成済みのプロキシファイルを削除"/>
+                        <c:ToggleSlider Value="{Binding Source={x:Static local:ProxyVideoSourceSettings.Default}, Path=ClearCacheOnExit}" HorizontalAlignment="Right"/>
+                    </Grid>
+                </StackPanel>
+            </Expander>
 
-        <!-- キャッシュ管理 -->
-        <Expander Header="キャッシュ管理" IsExpanded="True">
-            <StackPanel>
-                <TextBlock Text="プロキシキャッシュを削除すると、次回動画読み込み時に再生成されます。" 
+            <!-- キャッシュ管理 -->
+            <Expander Header="キャッシュ管理" IsExpanded="True">
+                <StackPanel>
+                    <TextBlock Text="プロキシキャッシュを削除すると、次回動画読み込み時に再生成されます。" 
                            TextWrapping="Wrap" Margin="5"/>
-                <Button Content="キャッシュをクリア" 
+                    <Button Content="キャッシュをクリア" 
                         Click="ClearCacheButton_Click" 
                         Width="200" 
                         HorizontalAlignment="Left" 
                         Margin="5"/>
-            </StackPanel>
-        </Expander>
-    </StackPanel>
+                    <Button Content="キャッシュフォルダを開く" 
+                        Click="OpenCacheFolderButton_Click" 
+                        Width="200" 
+                        HorizontalAlignment="Left" 
+                        Margin="5"/>
+                </StackPanel>
+            </Expander>
+
+            <!-- 生成状況 -->
+            <Expander Header="生成状況" IsExpanded="True">
+                <StackPanel>
+                    <ItemsControl x:Name="GenerationList">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Margin="3,4">
+                                    <TextBlock Text="{Binding FileName}" FontSize="12" Margin="0,0,0,2"/>
+                                    <Grid Height="20">
+                                        <ProgressBar Minimum="0" Maximum="100" Value="{Binding Progress, Mode=OneWay}"/>
+                                        <TextBlock Text="{Binding ProgressText}" 
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                                               FontSize="11"/>
+                                    </Grid>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <TextBlock x:Name="NoGenerationText"
+                           Text="生成中のプロキシはありません" 
+                           Margin="5" FontSize="12" Opacity="0.6"/>
+                </StackPanel>
+            </Expander>
+        </StackPanel>
+    </ScrollViewer>
 </UserControl>

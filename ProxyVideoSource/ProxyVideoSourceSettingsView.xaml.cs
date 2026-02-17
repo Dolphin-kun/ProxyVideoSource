@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System.Collections.Specialized;
+using System.Diagnostics;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -11,6 +13,22 @@ namespace ProxyVideoSource
             InitializeComponent();
 
             CpuCoreSlider.Max = ProxyVideoSourceSettings.MaxCpuCoreCount;
+
+            GenerationList.ItemsSource = ProxyManager.ActiveGenerations;
+            ProxyManager.ActiveGenerations.CollectionChanged += OnGenerationsChanged;
+            UpdateNoGenerationText();
+        }
+
+        private void OnGenerationsChanged(object? sender, NotifyCollectionChangedEventArgs e)
+        {
+            UpdateNoGenerationText();
+        }
+
+        private void UpdateNoGenerationText()
+        {
+            NoGenerationText.Visibility = ProxyManager.ActiveGenerations.Count == 0
+                ? Visibility.Visible
+                : Visibility.Collapsed;
         }
 
         private void ClearCacheButton_Click(object sender, RoutedEventArgs e)
@@ -51,6 +69,27 @@ namespace ProxyVideoSource
             {
                 MessageBox.Show(
                     $"キャッシュクリアに失敗しました: {ex.Message}",
+                    "エラー",
+                    MessageBoxButton.OK);
+            }
+        }
+
+        private void OpenCacheFolderButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var cacheDir = ProxyManager.GetCacheDirectory();
+                Directory.CreateDirectory(cacheDir);
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = cacheDir,
+                    UseShellExecute = true
+                });
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"フォルダを開けませんでした: {ex.Message}",
                     "エラー",
                     MessageBoxButton.OK);
             }

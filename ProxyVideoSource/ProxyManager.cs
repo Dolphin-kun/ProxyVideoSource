@@ -1,8 +1,11 @@
 ﻿using System.Collections.Concurrent;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Windows;
 using YukkuriMovieMaker.Commons;
 
@@ -20,8 +23,13 @@ namespace ProxyVideoSource
 
         public static event Action<string, string>? ProxyCompleted;
 
+        public static ObservableCollection<ProxyGenerationItem> ActiveGenerations { get; } = [];
+
         private static readonly string proxyCacheFolder = Path.Combine(AppDirectories.TemporaryDirectory, "ProxyVideoCache");
         private static readonly string ffmpegPath = Path.Combine(AppDirectories.UserDirectory, "resources", "ffmpeg", "ffmpeg.exe");
+
+        private static readonly Regex DurationRegex = new(@"Duration:\s*(\d{2}):(\d{2}):(\d{2})\.(\d{2})", RegexOptions.Compiled);
+        private static readonly Regex TimeRegex = new(@"time=(\d{2}):(\d{2}):(\d{2})\.(\d{2})", RegexOptions.Compiled);
 
         static ProxyManager()
         {
@@ -91,11 +99,18 @@ namespace ProxyVideoSource
         {
             proxyGenerationTasks.GetOrAdd(originalPath, _ =>
             {
+                var item = new ProxyGenerationItem(originalPath);
+
+                Application.Current?.Dispatcher.Invoke(() =>
+                {
+                    ActiveGenerations.Add(item);
+                });
+
                 return Task.Run(async () =>
                 {
                     try
                     {
-                        await CreateProxyVideoAsync(originalPath, proxyPath, scale);
+                        await CreateProxyVideoAsync(originalPath, proxyPath, scale, item);
                         originalToProxy[originalPath] = proxyPath;
                         proxyToOriginal[proxyPath] = originalPath;
 
@@ -112,6 +127,11 @@ namespace ProxyVideoSource
                     finally
                     {
                         proxyGenerationTasks.TryRemove(originalPath, out var _);
+
+                        Application.Current?.Dispatcher.Invoke(() =>
+                        {
+                            ActiveGenerations.Remove(item);
+                        });
                     }
                 });
             });
@@ -181,7 +201,16 @@ namespace ProxyVideoSource
             return Convert.ToHexString(hash)[..16];
         }
 
-        private static async Task CreateProxyVideoAsync(string inputPath, string outputPath, float scale)
+        private static double ParseTimeToSeconds(Match match)
+        {
+            int hours = int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture);
+            int minutes = int.Parse(match.Groups[2].Value, CultureInfo.InvariantCulture);
+            int seconds = int.Parse(match.Groups[3].Value, CultureInfo.InvariantCulture);
+            int centiseconds = int.Parse(match.Groups[4].Value, CultureInfo.InvariantCulture);
+            return hours * 3600 + minutes * 60 + seconds + centiseconds / 100.0;
+        }
+
+        private static async Task CreateProxyVideoAsync(string inputPath, string outputPath, float scale, ProxyGenerationItem progressItem)
         {
             if (!File.Exists(ffmpegPath))
             {
@@ -222,6 +251,7 @@ namespace ProxyVideoSource
 
                 var errorBuilder = new StringBuilder();
                 var outputBuilder = new StringBuilder();
+                double totalDuration = 0;
 
                 process.OutputDataReceived += (sender, e) =>
                 {
@@ -231,8 +261,34 @@ namespace ProxyVideoSource
 
                 process.ErrorDataReceived += (sender, e) =>
                 {
-                    if (!string.IsNullOrEmpty(e.Data))
-                        errorBuilder.AppendLine(e.Data);
+                    if (string.IsNullOrEmpty(e.Data))
+                        return;
+
+                    errorBuilder.AppendLine(e.Data);
+
+                    if (totalDuration <= 0)
+                    {
+                        var durationMatch = DurationRegex.Match(e.Data);
+                        if (durationMatch.Success)
+                        {
+                            totalDuration = ParseTimeToSeconds(durationMatch);
+                        }
+                    }
+
+                    if (totalDuration > 0)
+                    {
+                        var timeMatch = TimeRegex.Match(e.Data);
+                        if (timeMatch.Success)
+                        {
+                            var currentTime = ParseTimeToSeconds(timeMatch);
+                            var percent = Math.Min(100.0, currentTime / totalDuration * 100.0);
+
+                            Application.Current?.Dispatcher.BeginInvoke(() =>
+                            {
+                                progressItem.Progress = percent;
+                            });
+                        }
+                    }
                 };
 
                 process.Start();
@@ -245,6 +301,11 @@ namespace ProxyVideoSource
 
                 if (exitCode == 0 && File.Exists(tempOutput))
                 {
+                    Application.Current?.Dispatcher.BeginInvoke(() =>
+                    {
+                        progressItem.Progress = 100;
+                    });
+
                     File.Move(tempOutput, outputPath);
                 }
                 else
