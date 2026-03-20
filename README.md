@@ -2,8 +2,10 @@
 
 ### [最新バージョンをダウンロード](https://github.com/Dolphin-kun/ProxyVideoSource/releases/latest)
 
-> [!NOTE]
-> ffmpegが動くため、CPUを使います。
+> [!Warning]
+> ## __このプラグインはDLしただけで実行されます。__  
+> 
+> ffmpegが動くため、CPUを使います。  
 > 設定をしていないとあるだけのCPUをごっそり使ってくるので気をつけてください。
 
 ## 概要
