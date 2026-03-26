@@ -1,5 +1,9 @@
 # 「動画プロキシ」動画読み込みプラグイン
 
+> [!Note]
+> このプラグインは上位互換のものが出たため更新を終了いたしました。  
+> [ProxyForge for YMM4 (routersysさんのプラグインです)](https://github.com/routersys/YMM4-ProxyForge/tree/main)
+
 ### [最新バージョンをダウンロード](https://github.com/Dolphin-kun/ProxyVideoSource/releases/latest)
 
 > [!Warning]
